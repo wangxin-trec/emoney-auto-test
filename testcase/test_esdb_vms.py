@@ -1,0 +1,127 @@
+from util.Config import ConfigInfo
+from util.Logger import logger
+from operation import VMOperations
+import allure,pytest
+
+ESDB_VMs = [
+    {"name": "eventstoredb-1-test", "zone": "asia-northeast1-a"},
+    {"name": "eventstoredb-2-test", "zone": "asia-northeast1-b"},
+    {"name": "eventstoredb-3-test", "zone": "asia-northeast1-c"}
+]
+
+project_id = "emoney-dev-433104"
+
+@allure.epic('Test ESDB VMs')
+class TestAllESDBVM:
+
+    @pytest.fixture(scope='class')
+    def vm_ops(self, client):
+        return VMOperations(client)
+
+    # stop all esdb vm
+    @allure.story('Test Stop all ESDB VMs')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=1)
+    def test_stop_all_vms(self, client):
+        for vm in ESDB_VMs:
+            operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+            assert operation.status == 'DONE'
+
+    # start all esdb vm
+    @allure.story('Test Start all ESDB VMs')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=2)
+    def test_start_esdb_vms(self, client):
+        for vm in ESDB_VMs:
+            operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+            assert operation.status == 'DONE'
+
+    # stop esdb 1
+    @allure.story('Test Stop ESDB 1')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=3)
+    def test_stop_eventstoredb_1(self, client):
+        vm = ESDB_VMs[0]
+        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        assert operation.status == 'DONE'
+
+    # stop esdb 2
+    @allure.story('Test Stop ESDB 2')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=4)
+    def test_stop_eventstoredb_2(self, client):
+        vm = ESDB_VMs[1]
+        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        assert operation.status == 'DONE'
+
+    # stop esdb 3
+    @allure.story('Test Stop ESDB 3')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=5)
+    def test_stop_eventstoredb_3(self, client):
+        vm = ESDB_VMs[2]
+        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        assert operation.status == 'DONE'
+
+    # start esdb 1
+    @allure.story('Test Start ESDB 1')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=6)
+    def test_start_eventstoredb_1(self, client):
+        vm = ESDB_VMs[0]
+        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert operation.status == 'DONE'
+
+    # start esdb 2
+    @allure.story('Test Start ESDB 2')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=7)
+    def test_start_eventstoredb_2(self, client):
+        vm = ESDB_VMs[1]
+        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert operation.status == 'DONE'
+
+    # start esdb 3
+    @allure.story('Test Start ESDB 3')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=8)
+    def test_start_eventstoredb_3(self, client):
+        vm = ESDB_VMs[2]
+        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert operation.status == 'DONE'
+
+    # restart esdb 1
+    @allure.story('Test Restart ESDB 1')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=9)
+    def test_restart_eventstoredb_1(self, client):
+        vm = ESDB_VMs[0]
+        # Stop and then start
+        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert stop_operation.status == 'DONE'
+        assert start_operation.status == 'DONE'
+
+    # restart esdb 2
+    @allure.story('Test Restart ESDB 2')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=10)
+    def test_restart_eventstoredb_2(self, client):
+        vm = ESDB_VMs[1]
+        # Stop and then start
+        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert stop_operation.status == 'DONE'
+        assert start_operation.status == 'DONE'
+
+    # restart esdb 3
+    @allure.story('Test Restart ESDB 3')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=11)
+    def test_restart_eventstoredb_3(self, client):
+        vm = ESDB_VMs[2]
+        # Stop and then start
+        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert stop_operation.status == 'DONE'
+        assert start_operation.status == 'DONE'

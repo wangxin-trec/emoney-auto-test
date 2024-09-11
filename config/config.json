@@ -15,13 +15,6 @@
         "TempJsonPath": "./tempjson/",
         "TestCasePath": "./testcase"
     },
-    "GCP": {
-        "ProjectID": "emoney-dev-433104"
-    },
-    "Cluster": {
-        "Name": "emoney-gke-cluster-test",
-        "Region": "asia-northeast1"
-    },
     "ShellCommend": {
         "AllureOpen": "allure open %~dp0",
         "AllureGenerate": "allure generate "

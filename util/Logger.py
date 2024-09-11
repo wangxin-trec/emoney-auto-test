@@ -1,6 +1,7 @@
 import logging,os,colorlog
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
+import pytz  # Import pytz for timezone handling
 from util.Config import ConfigInfo
 
 log_path = ConfigInfo.File.LogPath
@@ -26,6 +27,9 @@ class HandleLog:
         self.__error_log_path = os.path.join(log_path, self.__now_time + "-error" + ".log")
         self.__logger = logging.getLogger()
         self.__logger.setLevel(logging.DEBUG)
+        
+        # Define Tokyo timezone
+        self.tokyo_tz = pytz.timezone('Asia/Tokyo')
 
     @staticmethod
     def __init_logger_handler(log_path):
@@ -36,6 +40,12 @@ class HandleLog:
     def __init_console_handle():
         console_handle = colorlog.StreamHandler()
         return console_handle
+
+    def __format_time(self, record, datefmt=None):
+        # Convert UTC time to Tokyo time
+        utc_time = datetime.utcfromtimestamp(record.created)
+        tokyo_time = utc_time.astimezone(self.tokyo_tz)
+        return tokyo_time.strftime(datefmt)
 
     def __set_log_handler(self, logger_handler, level=logging.DEBUG):
         logger_handler.setLevel(level=level)
@@ -50,9 +60,10 @@ class HandleLog:
         formatter = colorlog.ColoredFormatter(default_formats["color_format"], log_colors=color_config)
         console_handle.setFormatter(formatter)
 
-    @staticmethod
-    def __set_log_formatter(file_handler):
-        formatter = logging.Formatter(default_formats["log_format"])
+    def __set_log_formatter(self, file_handler):
+        # Use custom formatter for Tokyo time
+        formatter = logging.Formatter(fmt=default_formats["log_format"], datefmt="%Y-%m-%d %H:%M:%S")
+        formatter.converter = self.__format_time  # Use custom time format function
         file_handler.setFormatter(formatter)
 
     @staticmethod
