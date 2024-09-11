@@ -48,14 +48,14 @@ class VMOperations:
         operations_client = compute_v1.ZoneOperationsClient()
         while True:
             operation = operations_client.get(project=project_id, zone=zone, operation=operation_name)
-            if operation.status == ConfigInfo.Status.Done:
+            if str(operation.status) == ConfigInfo.Status.Done:
                 if 'error' in operation:
                     raise RuntimeError(f"Operation {operation_name} failed: {operation.error}")
                 return
             # Optionally, sleep for a short period before polling again
             time.sleep(1)
-            print(f'Operation status: {operation.status}')
+            print(f'Operation status: {str(operation.status)}')
             print(f'ConfigInfo.Status: {ConfigInfo.Status.Done}')
-            print(f'Type of operation.status: {type(operation.status)}')
+            print(f'Type of operation.status: {type(str(operation.status))}')
             print(f'Type of ConfigInfo.Status.Done: {type(ConfigInfo.Status.Done)}')
         logger.info('VM Wait⇒end')
