@@ -28,8 +28,15 @@ class TestAllESDBVM:
             logger.info('stop esdb vm --> done ' + vm["name"])
         return str(operation.status)
 
-    # stop all esdb vm
-    @allure.story('Test Stop all ESDB VMs')
+    @staticmethod
+    def start_single_vm(vm_ops, project_id, vm):
+        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        if str(operation.status) == ConfigInfo.Status.Done:
+            logger.info('start esdb vm --> done ' + vm["name"])
+        return str(operation.status)
+
+    # stop all esdb vm at same time
+    @allure.story('Test Stop all ESDB VMs at same time')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
     @pytest.mark.run(order=1)
     def test_stop_esdb_vms(self, vm_ops):
@@ -49,16 +56,23 @@ class TestAllESDBVM:
         logger.info('test case end: ' + inspect.currentframe().f_code.co_name)
 
     # start all esdb vm
-    @allure.story('Test Start all ESDB VMs')
+    @allure.story('Test Start all ESDB VMs at same time')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
     @pytest.mark.run(order=2)
     def test_start_esdb_vms(self, vm_ops):
         logger.info('test case begin: ' + inspect.currentframe().f_code.co_name)
-        for vm_key in ESDB_VMs:
-            vm = ESDB_VMs[vm_key]
-            operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-            assert str(operation.status) == ConfigInfo.Status.Done
-            logger.info('start esdb vm --> done ' + vm["name"])
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in ESDB_VMs.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
         logger.info('test case end: ' + inspect.currentframe().f_code.co_name)
 
     # stop esdb 1
