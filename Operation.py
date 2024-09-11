@@ -11,7 +11,7 @@ class VMOperations:
     def start_vm(self, project_id, zone, instance_name):
         logger.info('VM Start⇒begin')
         operation = self.client.start(project=project_id, zone=zone, instance=instance_name)
-        self._wait_for_operation(project_id, zone, operation.name)
+        operation = self._wait_for_operation(project_id, zone, operation.name)
         logger.info('VM Start⇒end')
         return operation
 
@@ -19,7 +19,7 @@ class VMOperations:
     def stop_vm(self, project_id, zone, instance_name):
         logger.info('VM Stop⇒begin')
         operation = self.client.stop(project=project_id, zone=zone, instance=instance_name)
-        self._wait_for_operation(project_id, zone, operation.name)
+        operation = self._wait_for_operation(project_id, zone, operation.name)
         logger.info('VM Stop⇒end')
         return operation
 
@@ -51,11 +51,9 @@ class VMOperations:
             if str(operation.status) == ConfigInfo.Status.Done:
                 if 'error' in operation:
                     raise RuntimeError(f"Operation {operation_name} failed: {operation.error}")
-                return
+                return operation
             # Optionally, sleep for a short period before polling again
             time.sleep(1)
             print(f'Operation status: {str(operation.status)}')
             print(f'ConfigInfo.Status: {ConfigInfo.Status.Done}')
-            print(f'Type of operation.status: {type(str(operation.status))}')
-            print(f'Type of ConfigInfo.Status.Done: {type(ConfigInfo.Status.Done)}')
         logger.info('VM Wait⇒end')
