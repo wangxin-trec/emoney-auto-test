@@ -20,6 +20,7 @@ class TestAllESDBVM:
     def vm_ops(self, client):
         return VMOperations(client)
 
+    @staticmethod
     def stop_single_vm(vm_ops, project_id, vm):
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         if operation.status == 'DONE':
@@ -33,7 +34,7 @@ class TestAllESDBVM:
     def test_stop_esdb_vms(self, vm_ops):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
-                executor.submit(stop_single_vm, vm_ops, project_id, vm): vm_key 
+                executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
                 for vm_key, vm in ESDB_VMs.items()
             }
             for future in concurrent.futures.as_completed(futures):
