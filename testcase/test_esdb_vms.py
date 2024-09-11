@@ -28,6 +28,7 @@ class TestAllESDBVM:
             vm = ESDB_VMs[vm_key]
             operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
             assert operation.status == 'DONE'
+            logger.info('stop esdb vm --> done ' + vm["name"])
 
     # start all esdb vm
     @allure.story('Test Start all ESDB VMs')
@@ -38,6 +39,7 @@ class TestAllESDBVM:
             vm = ESDB_VMs[vm_key]
             operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
             assert operation.status == 'DONE'
+            logger.info('start esdb vm --> done ' + vm["name"])
 
     # stop esdb 1
     @allure.story('Test Stop ESDB 1')
@@ -47,6 +49,7 @@ class TestAllESDBVM:
         vm = ESDB_VMs["1"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert operation.status == 'DONE'
+        logger.info('Stop esdb vm --> done ' + vm["name"])
 
     # stop esdb 2
     @allure.story('Test Stop ESDB 2')
@@ -56,6 +59,7 @@ class TestAllESDBVM:
         vm = ESDB_VMs["2"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert operation.status == 'DONE'
+        logger.info('Stop esdb vm --> done ' + vm["name"])
 
     # stop esdb 3
     @allure.story('Test Stop ESDB 3')
@@ -65,6 +69,7 @@ class TestAllESDBVM:
         vm = ESDB_VMs["3"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert operation.status == 'DONE'
+        logger.info('Stop esdb vm --> done ' + vm["name"])
 
     # start esdb 1
     @allure.story('Test Start ESDB 1')
@@ -74,6 +79,7 @@ class TestAllESDBVM:
         vm = ESDB_VMs["1"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert operation.status == 'DONE'
+        logger.info('Start esdb vm --> done ' + vm["name"])
 
     # start esdb 2
     @allure.story('Test Start ESDB 2')
@@ -83,6 +89,7 @@ class TestAllESDBVM:
         vm = ESDB_VMs["2"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert operation.status == 'DONE'
+        logger.info('Start esdb vm --> done ' + vm["name"])
 
     # start esdb 3
     @allure.story('Test Start ESDB 3')
@@ -92,6 +99,7 @@ class TestAllESDBVM:
         vm = ESDB_VMs["3"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert operation.status == 'DONE'
+        logger.info('Start esdb vm --> done ' + vm["name"])
 
     # restart esdb 1
     @allure.story('Test Restart ESDB 1')
@@ -103,6 +111,7 @@ class TestAllESDBVM:
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert stop_operation.status == 'DONE'
         assert start_operation.status == 'DONE'
+        logger.info('Restart esdb vm --> done ' + vm["name"])
 
     # restart esdb 2
     @allure.story('Test Restart ESDB 2')
@@ -114,6 +123,7 @@ class TestAllESDBVM:
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert stop_operation.status == 'DONE'
         assert start_operation.status == 'DONE'
+        logger.info('Restart esdb vm --> done ' + vm["name"])
 
     # restart esdb 3
     @allure.story('Test Restart ESDB 3')
@@ -125,3 +135,4 @@ class TestAllESDBVM:
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert stop_operation.status == 'DONE'
         assert start_operation.status == 'DONE'
+        logger.info('Restart esdb vm --> done ' + vm["name"])
