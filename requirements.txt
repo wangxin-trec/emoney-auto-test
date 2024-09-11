@@ -1,0 +1,10 @@
+pytest
+pytest-rerunfailures
+pytest-testreport
+pytest-sugar
+pytest-cov
+pytest-ordering
+allure-pytest
+configobj
+colorlog
+google-cloud-compute

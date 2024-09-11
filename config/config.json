@@ -1,0 +1,29 @@
+{
+    "Version": "v0.0.1",
+    "Switch": {
+        "GitUpdateCode": false,
+        "IsolateTestCase": false
+    },
+    "TestCaseReRun": {
+        "Count": 0,
+        "Delay": 0
+    },
+    "File": {
+        "LogPath": "./log/",
+        "ReportPath": "./report/",
+        "ReportBKPath": "./reportBK/",
+        "TempJsonPath": "./tempjson/",
+        "TestCasePath": "./testcase"
+    },
+    "GCP": {
+        "ProjectID": "emoney-dev-433104"
+    },
+    "Cluster": {
+        "Name": "emoney-gke-cluster-test",
+        "Region": "asia-northeast1"
+    },
+    "ShellCommend": {
+        "AllureOpen": "allure open %~dp0",
+        "AllureGenerate": "allure generate "
+    }
+}
