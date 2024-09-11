@@ -31,21 +31,23 @@ class HandleLog:
         # Define Tokyo timezone
         self.tokyo_tz = pytz.timezone('Asia/Tokyo')
 
-    @staticmethod
-    def __init_logger_handler(log_path):
+    def __format_time(self, record):
+        """自定义的时间格式方法，转换为东京时间。"""
+        if hasattr(record, 'created'):
+            utc_time = datetime.utcfromtimestamp(record.created)
+            tokyo_time = utc_time.astimezone(self.tokyo_tz)
+            return tokyo_time.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            # 如果 record 对象没有 created 属性，返回当前东京时间
+            return datetime.now(self.tokyo_tz).strftime('%Y-%m-%d %H:%M:%S')
+
+    def __init_logger_handler(self, log_path):
         logger_handler = RotatingFileHandler(filename=log_path, maxBytes=5 * 1024 * 1024, backupCount=30, encoding="utf-8")
         return logger_handler
 
-    @staticmethod
-    def __init_console_handle():
+    def __init_console_handle(self):
         console_handle = colorlog.StreamHandler()
         return console_handle
-
-    def __format_time(self, record, datefmt=None):
-        # Convert UTC time to Tokyo time
-        utc_time = datetime.utcfromtimestamp(record.created)
-        tokyo_time = utc_time.astimezone(self.tokyo_tz)
-        return tokyo_time.strftime(datefmt)
 
     def __set_log_handler(self, logger_handler, level=logging.DEBUG):
         logger_handler.setLevel(level=level)
@@ -55,15 +57,23 @@ class HandleLog:
         console_handle.setLevel(logging.DEBUG)
         self.__logger.addHandler(console_handle)
 
-    @staticmethod
-    def __set_color_formatter(console_handle, color_config):
+    def __set_color_formatter(self, console_handle, color_config):
         formatter = colorlog.ColoredFormatter(default_formats["color_format"], log_colors=color_config)
         console_handle.setFormatter(formatter)
 
     def __set_log_formatter(self, file_handler):
-        # Use custom formatter for Tokyo time
-        formatter = logging.Formatter(fmt=default_formats["log_format"], datefmt="%Y-%m-%d %H:%M:%S")
-        formatter.converter = self.__format_time  # Use custom time format function
+        # 使用自定义的时间格式器
+        class CustomFormatter(logging.Formatter):
+            def format(self, record):
+                record.asctime = self.__format_time(record)  # 保证 created 属性被正确格式化
+                return super().format(record)
+
+            def __format_time(self, record):
+                utc_time = datetime.utcfromtimestamp(record.created)
+                tokyo_time = utc_time.astimezone(self.tokyo_tz)
+                return tokyo_time.strftime('%Y-%m-%d %H:%M:%S')
+
+        formatter = CustomFormatter(fmt=default_formats["log_format"])
         file_handler.setFormatter(formatter)
 
     @staticmethod
