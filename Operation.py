@@ -9,18 +9,18 @@ class VMOperations:
 
     @allure.step('Start VM')
     def start_vm(self, project_id, zone, instance_name):
-        logger.info('VM Start⇒begin')
+        logger.info('VM Start⇒begin: ' + instance_name)
         operation = self.client.start(project=project_id, zone=zone, instance=instance_name)
         operation = self._wait_for_operation(project_id, zone, operation.name)
-        logger.info('VM Start⇒end')
+        logger.info('VM Start⇒end: ' + instance_name)
         return operation
 
     @allure.step('Stop VM')
     def stop_vm(self, project_id, zone, instance_name):
-        logger.info('VM Stop⇒begin')
+        logger.info('VM Stop⇒begin: ' + instance_name)
         operation = self.client.stop(project=project_id, zone=zone, instance=instance_name)
         operation = self._wait_for_operation(project_id, zone, operation.name)
-        logger.info('VM Stop⇒end')
+        logger.info('VM Stop⇒end: ' + instance_name)
         return operation
 
     @allure.step('List VMs')
@@ -44,16 +44,14 @@ class VMOperations:
 
     @allure.step('Wait for operation')
     def _wait_for_operation(self, project_id, zone, operation_name):
-        logger.info('VM Wait⇒begin')
+        logger.info('VM Wait⇒begin: ' + operation_name)
         operations_client = compute_v1.ZoneOperationsClient()
         while True:
             operation = operations_client.get(project=project_id, zone=zone, operation=operation_name)
             if str(operation.status) == ConfigInfo.Status.Done:
                 if 'error' in operation:
                     raise RuntimeError(f"Operation {operation_name} failed: {operation.error}")
+                logger.info('VM Wait⇒end: ' + operation_name)
                 return operation
             # Optionally, sleep for a short period before polling again
             time.sleep(1)
-            print(f'Operation status: {str(operation.status)}')
-            print(f'ConfigInfo.Status: {ConfigInfo.Status.Done}')
-        logger.info('VM Wait⇒end')
