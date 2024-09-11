@@ -3,6 +3,7 @@ from util.Logger import logger
 from Operation import VMOperations
 import allure
 import pytest
+import concurrent.futures
 
 ESDB_VMs = {
     "1": {"name": "eventstoredb-1-test", "zone": "asia-northeast1-a"},
@@ -19,16 +20,29 @@ class TestAllESDBVM:
     def vm_ops(self, client):
         return VMOperations(client)
 
+def stop_single_vm(vm_ops, project_id, vm):
+    operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+    if operation.status == 'DONE':
+        logger.info('stop esdb vm --> done ' + vm["name"])
+    return operation.status
+
     # stop all esdb vm
     @allure.story('Test Stop all ESDB VMs')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
     @pytest.mark.run(order=1)
     def test_stop_esdb_vms(self, vm_ops):
-        for vm_key in ESDB_VMs:
-            vm = ESDB_VMs[vm_key]
-            operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-            assert operation.status == 'DONE'
-            logger.info('stop esdb vm --> done ' + vm["name"])
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(stop_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in ESDB_VMs.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert status == 'DONE', f"Failed to stop VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
 
     # start all esdb vm
     @allure.story('Test Start all ESDB VMs')

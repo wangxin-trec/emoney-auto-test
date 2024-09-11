@@ -53,4 +53,5 @@ class VMOperations:
                 return
             # Optionally, sleep for a short period before polling again
             time.sleep(1)
+            print(operation.status)
         logger.info('VM Wait⇒end')
