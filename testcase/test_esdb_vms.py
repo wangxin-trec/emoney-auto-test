@@ -20,11 +20,11 @@ class TestAllESDBVM:
     def vm_ops(self, client):
         return VMOperations(client)
 
-def stop_single_vm(vm_ops, project_id, vm):
-    operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    if operation.status == 'DONE':
-        logger.info('stop esdb vm --> done ' + vm["name"])
-    return operation.status
+    def stop_single_vm(vm_ops, project_id, vm):
+        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        if operation.status == 'DONE':
+            logger.info('stop esdb vm --> done ' + vm["name"])
+        return operation.status
 
     # stop all esdb vm
     @allure.story('Test Stop all ESDB VMs')
