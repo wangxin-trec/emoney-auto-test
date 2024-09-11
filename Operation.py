@@ -1,6 +1,6 @@
 from google.cloud import compute_v1
 from util.Logger import logger
-import allure
+import allure, time
 
 class VMOperations:
     def __init__(self, client):
