@@ -54,5 +54,8 @@ class VMOperations:
                 return
             # Optionally, sleep for a short period before polling again
             time.sleep(1)
-            print(operation.status)
+            print(f'Operation status: {operation.status}')
+            print(f'ConfigInfo.Status: {ConfigInfo.Status.Done}')
+            print(f'Type of operation.status: {type(operation.status)}')
+            print(f'Type of ConfigInfo.Status.Done: {type(ConfigInfo.Status.Done)}')
         logger.info('VM Wait⇒end')
