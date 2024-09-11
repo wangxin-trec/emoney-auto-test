@@ -8,7 +8,6 @@ import pytest,os
 def client():
     currentTestCaseName = Common._validatePath(os.environ.get('PYTEST_CURRENT_TEST').split(' ')[0])
     logger.info('>>>>TestCase is ' + currentTestCaseName + '>>>> begin')
-    os.system('gcloud auth login')
     client = compute_v1.InstancesClient()
     yield client
     logger.info('<<<<TestCase is ' + currentTestCaseName + '<<<< end')
