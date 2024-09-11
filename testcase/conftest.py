@@ -4,7 +4,7 @@ from util.Config import ConfigInfo
 from google.cloud import compute_v1
 import pytest,os
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 def client():
     currentTestCaseName = Common._validatePath(os.environ.get('PYTEST_CURRENT_TEST').split(' ')[0])
     logger.info('>>>>TestCase is ' + currentTestCaseName + '>>>> begin')
