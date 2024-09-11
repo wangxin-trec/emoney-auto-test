@@ -1,9 +1,12 @@
 from google.cloud import compute_v1
+from util.Logger import logger
+import allure
 
 class VMOperations:
     def __init__(self, client):
         self.client = client
 
+    @allure.step('Start VM')
     def start_vm(self, project_id, zone, instance_name):
         logger.info('VM Start⇒begin')
         operation = self.client.start(project=project_id, zone=zone, instance=instance_name)
@@ -11,6 +14,7 @@ class VMOperations:
         logger.info('VM Start⇒end')
         return operation
 
+    @allure.step('Stop VM')
     def stop_vm(self, project_id, zone, instance_name):
         logger.info('VM Stop⇒begin')
         operation = self.client.stop(project=project_id, zone=zone, instance=instance_name)
@@ -18,6 +22,7 @@ class VMOperations:
         logger.info('VM Stop⇒end')
         return operation
 
+    @allure.step('List VMs')
     def list_vms(self, project_id):
         logger.info('VM List⇒begin')
         request = compute_v1.AggregatedListInstancesRequest(project=project_id)
@@ -36,6 +41,7 @@ class VMOperations:
         logger.info('VM List⇒end')
         return vm_list
 
+    @allure.step('Wait for operation')
     def _wait_for_operation(self, project_id, zone, operation_name):
         logger.info('VM Wait⇒begin')
         operations_client = compute_v1.ZoneOperationsClient()
