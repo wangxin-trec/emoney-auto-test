@@ -1,6 +1,6 @@
 from util.Config import ConfigInfo
 from util.Logger import logger
-from operation import VMOperations
+from Operation import VMOperations
 import allure,pytest
 
 MONGODB_VMs = {
