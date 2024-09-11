@@ -1,4 +1,5 @@
 from google.cloud import compute_v1
+from util.Config import ConfigInfo
 from util.Logger import logger
 import allure, time
 
@@ -47,7 +48,7 @@ class VMOperations:
         operations_client = compute_v1.ZoneOperationsClient()
         while True:
             operation = operations_client.get(project=project_id, zone=zone, operation=operation_name)
-            if operation.status == 'DONE':
+            if operation.status == ConfigInfo.Status.Done:
                 if 'error' in operation:
                     raise RuntimeError(f"Operation {operation_name} failed: {operation.error}")
                 return

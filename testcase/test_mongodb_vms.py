@@ -32,7 +32,7 @@ class TestAllMongoDBVM:
         for vm_key in MONGODB_VMs:
             vm = MONGODB_VMs[vm_key]
             operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-            assert operation.status == 'DONE'
+            assert operation.status == ConfigInfo.Status.Done
 
     # start all mongodb vm
     @allure.story('Test Start all MongoDB VMs')
@@ -42,7 +42,7 @@ class TestAllMongoDBVM:
         for vm_key in MONGODB_VMs:
             vm = MONGODB_VMs[vm_key]
             operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-            assert operation.status == 'DONE'
+            assert operation.status == ConfigInfo.Status.Done
     #########################################config###############################################
     # stop mongodb-config-1
     @allure.story('Test Stop MongoDB Config 1')
@@ -51,7 +51,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_config_1(self, vm_ops):
         vm = MONGODB_VMs["config1"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # stop mongodb-config-2
     @allure.story('Test Stop MongoDB Config 2')
@@ -60,7 +60,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_config_2(self, vm_ops):
         vm = MONGODB_VMs["config2"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # stop mongodb-config-3
     @allure.story('Test Stop MongoDB Config 3')
@@ -69,7 +69,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_config_3(self, vm_ops):
         vm = MONGODB_VMs["config3"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-config-1
     @allure.story('Test Start MongoDB Config 1')
@@ -78,7 +78,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_config_1(self, vm_ops):
         vm = MONGODB_VMs["config1"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-config-2
     @allure.story('Test Start MongoDB Config 2')
@@ -87,7 +87,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_config_2(self, vm_ops):
         vm = MONGODB_VMs["config2"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-config-3
     @allure.story('Test Start MongoDB Config 3')
@@ -96,7 +96,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_config_3(self, vm_ops):
         vm = MONGODB_VMs["config3"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-config-1
     @allure.story('Test Restart MongoDB Config 1')
@@ -106,8 +106,8 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["config1"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-config-2
     @allure.story('Test Restart MongoDB Config 2')
@@ -117,8 +117,8 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["config2"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-config-3
     @allure.story('Test Restart MongoDB Config 3')
@@ -128,8 +128,8 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["config3"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
     #########################################config###############################################
 
     #########################################shard1###############################################
@@ -140,7 +140,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_shard_1_1(self, vm_ops):
         vm = MONGODB_VMs["shard1-1"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # stop mongodb-shard1-2
     @allure.story('Test Stop MongoDB shard 1-2')
@@ -149,7 +149,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_shard_1_2(self, vm_ops):
         vm = MONGODB_VMs["shard1-2"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # stop mongodb-shard1-3-arbiter
     @allure.story('Test Stop MongoDB shard 1-3-arbiter')
@@ -158,7 +158,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_shard_1_3_arbiter(self, vm_ops):
         vm = MONGODB_VMs["shard1-3-arbiter"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-shard1-1
     @allure.story('Test Start MongoDB shard 1-1')
@@ -167,7 +167,7 @@ class TestAllMongoDBVM:
     def test_start_mongo_shard_1_1(self, vm_ops):
         vm = MONGODB_VMs["shard1-1"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-shard1-2
     @allure.story('Test Start MongoDB shard 1-2')
@@ -176,7 +176,7 @@ class TestAllMongoDBVM:
     def test_start_mongo_shard_1_2(self, vm_ops):
         vm = MONGODB_VMs["shard1-2"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-shard1-3-arbiter
     @allure.story('Test Start MongoDB shard 1-3-arbiter')
@@ -185,7 +185,7 @@ class TestAllMongoDBVM:
     def test_start_mongo_shard_1_3_arbiter(self, vm_ops):
         vm = MONGODB_VMs["shard1-3-arbiter"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-shard1-1
     @allure.story('Test Restart MongoDB shard 1-1')
@@ -195,8 +195,8 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["shard1-1"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-shard1-2
     @allure.story('Test Restart MongoDB shard 1-2')
@@ -206,8 +206,8 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["shard1-2"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-shard1-3-arbiter
     @allure.story('Test Restart MongoDB shard 1-3-arbiter')
@@ -217,8 +217,8 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["shard1-3-arbiter"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
     #########################################shard1###############################################
 
     #########################################shard2###############################################
@@ -229,7 +229,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_shard_2_1(self, vm_ops):
         vm = MONGODB_VMs["shard2-1"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # stop mongodb-shard2-2
     @allure.story('Test Stop MongoDB shard 2-2')
@@ -238,7 +238,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_shard_2_2(self, vm_ops):
         vm = MONGODB_VMs["shard2-2"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # stop mongodb-shard2-3-arbiter
     @allure.story('Test Stop MongoDB shard 2-3-arbiter')
@@ -247,7 +247,7 @@ class TestAllMongoDBVM:
     def test_stop_mongo_shard_2_3_arbiter(self, vm_ops):
         vm = MONGODB_VMs["shard2-3-arbiter"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-shard2-1
     @allure.story('Test Start MongoDB shard 2-1')
@@ -256,7 +256,7 @@ class TestAllMongoDBVM:
     def test_start_mongo_shard_2_1(self, vm_ops):
         vm = MONGODB_VMs["shard2-1"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-shard2-2
     @allure.story('Test Start MongoDB shard 1-2')
@@ -265,7 +265,7 @@ class TestAllMongoDBVM:
     def test_start_mongo_shard_2_2(self, vm_ops):
         vm = MONGODB_VMs["shard2-2"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # start mongodb-shard2-3-arbiter
     @allure.story('Test Start MongoDB shard 2-3-arbiter')
@@ -274,7 +274,7 @@ class TestAllMongoDBVM:
     def test_start_mongo_shard_2_3_arbiter(self, vm_ops):
         vm = MONGODB_VMs["shard2-3-arbiter"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-shard2-1
     @allure.story('Test Restart MongoDB shard 2-1')
@@ -284,8 +284,8 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["shard2-1"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-shard2-2
     @allure.story('Test Restart MongoDB shard 2-2')
@@ -295,8 +295,8 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["shard2-2"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
 
     # restart mongodb-shard2-3-arbiter
     @allure.story('Test Restart MongoDB shard 2-3-arbiter')
@@ -306,6 +306,6 @@ class TestAllMongoDBVM:
         vm = MONGODB_VMs["shard2-3-arbiter"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
     #########################################shard2###############################################

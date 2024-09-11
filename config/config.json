@@ -18,5 +18,8 @@
     "ShellCommend": {
         "AllureOpen": "allure open %~dp0",
         "AllureGenerate": "allure generate "
+    },
+    "Status": {
+        "Done": "Status.DONE"
     }
 }

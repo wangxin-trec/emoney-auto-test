@@ -23,7 +23,7 @@ class TestAllESDBVM:
     @staticmethod
     def stop_single_vm(vm_ops, project_id, vm):
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        if operation.status == 'DONE':
+        if operation.status == ConfigInfo.Status.Done:
             logger.info('stop esdb vm --> done ' + vm["name"])
         return operation.status
 
@@ -41,7 +41,7 @@ class TestAllESDBVM:
                 vm_key = futures[future]
                 try:
                     status = future.result()
-                    assert status == 'DONE', f"Failed to stop VM: {vm_key}"
+                    assert status == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
 
@@ -53,7 +53,7 @@ class TestAllESDBVM:
         for vm_key in ESDB_VMs:
             vm = ESDB_VMs[vm_key]
             operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-            assert operation.status == 'DONE'
+            assert operation.status == ConfigInfo.Status.Done
             logger.info('start esdb vm --> done ' + vm["name"])
 
     # stop esdb 1
@@ -63,7 +63,7 @@ class TestAllESDBVM:
     def test_stop_eventstoredb_1(self, vm_ops):
         vm = ESDB_VMs["1"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
         logger.info('Stop esdb vm --> done ' + vm["name"])
 
     # stop esdb 2
@@ -73,7 +73,7 @@ class TestAllESDBVM:
     def test_stop_eventstoredb_2(self, vm_ops):
         vm = ESDB_VMs["2"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
         logger.info('Stop esdb vm --> done ' + vm["name"])
 
     # stop esdb 3
@@ -83,7 +83,7 @@ class TestAllESDBVM:
     def test_stop_eventstoredb_3(self, vm_ops):
         vm = ESDB_VMs["3"]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
         logger.info('Stop esdb vm --> done ' + vm["name"])
 
     # start esdb 1
@@ -93,7 +93,7 @@ class TestAllESDBVM:
     def test_start_eventstoredb_1(self, vm_ops):
         vm = ESDB_VMs["1"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
         logger.info('Start esdb vm --> done ' + vm["name"])
 
     # start esdb 2
@@ -103,7 +103,7 @@ class TestAllESDBVM:
     def test_start_eventstoredb_2(self, vm_ops):
         vm = ESDB_VMs["2"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
         logger.info('Start esdb vm --> done ' + vm["name"])
 
     # start esdb 3
@@ -113,7 +113,7 @@ class TestAllESDBVM:
     def test_start_eventstoredb_3(self, vm_ops):
         vm = ESDB_VMs["3"]
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert operation.status == 'DONE'
+        assert operation.status == ConfigInfo.Status.Done
         logger.info('Start esdb vm --> done ' + vm["name"])
 
     # restart esdb 1
@@ -124,8 +124,8 @@ class TestAllESDBVM:
         vm = ESDB_VMs["1"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
         logger.info('Restart esdb vm --> done ' + vm["name"])
 
     # restart esdb 2
@@ -136,8 +136,8 @@ class TestAllESDBVM:
         vm = ESDB_VMs["2"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
         logger.info('Restart esdb vm --> done ' + vm["name"])
 
     # restart esdb 3
@@ -148,6 +148,6 @@ class TestAllESDBVM:
         vm = ESDB_VMs["3"]
         stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert stop_operation.status == 'DONE'
-        assert start_operation.status == 'DONE'
+        assert stop_operation.status == ConfigInfo.Status.Done
+        assert start_operation.status == ConfigInfo.Status.Done
         logger.info('Restart esdb vm --> done ' + vm["name"])
