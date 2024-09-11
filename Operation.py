@@ -46,5 +46,5 @@ class VMOperations:
                     raise RuntimeError(f"Operation {operation_name} failed: {operation.error}")
                 return
             # Optionally, sleep for a short period before polling again
-            time.sleep(10)
+            time.sleep(1)
         logger.info('VM Wait⇒end')
