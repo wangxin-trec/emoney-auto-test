@@ -10,7 +10,7 @@
     },
     "File": {
         "LogPath": "./log/",
-        "ReportPath": "./report/",
+        "ReportPath": "./report",
         "ReportBKPath": "./reportBK/",
         "TempJsonPath": "./tempjson/",
         "TestCasePath": "./testcase"

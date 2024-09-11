@@ -22,5 +22,6 @@ class TestListVms:
         logger.info('开始')
         instances = client.list(project="emoney-dev-433104", zone="asia-northeast1-a")
         for instance in instances:
-            logger.info('Instance: {instance.name}')
+            name = instance.name
+            logger.info('Instance:' + name)
         assert instances is not None
