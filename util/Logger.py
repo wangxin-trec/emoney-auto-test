@@ -1,11 +1,12 @@
-import logging,os,colorlog
+import logging, os, colorlog
 from logging.handlers import RotatingFileHandler
 from datetime import datetime
 import pytz  # Import pytz for timezone handling
 from util.Config import ConfigInfo
 
 log_path = ConfigInfo.File.LogPath
-if not os.path.exists(log_path): os.mkdir(log_path)
+if not os.path.exists(log_path):
+    os.mkdir(log_path)
 
 log_colors_config = {
     "DEBUG": "white",
@@ -19,6 +20,7 @@ default_formats = {
     "color_format": "%(log_color)s%(asctime)s: %(message)s",
     "log_format": "%(asctime)s: %(message)s"
 }
+
 
 class HandleLog:
     def __init__(self):
@@ -64,16 +66,17 @@ class HandleLog:
     def __set_log_formatter(self, file_handler):
         # 使用自定义的时间格式器
         class CustomFormatter(logging.Formatter):
-            def format(self, record):
-                record.asctime = self.__format_time(record)  # 保证 created 属性被正确格式化
-                return super().format(record)
+            def __init__(self, fmt=None, datefmt=None, tz=None):
+                super().__init__(fmt, datefmt)
+                self.tokyo_tz = tz
 
-            def __format_time(self, record):
+            def formatTime(self, record, datefmt=None):
+                # 使用传入的时区进行格式化
                 utc_time = datetime.utcfromtimestamp(record.created)
                 tokyo_time = utc_time.astimezone(self.tokyo_tz)
-                return tokyo_time.strftime('%Y-%m-%d %H:%M:%S')
+                return tokyo_time.strftime(datefmt or '%Y-%m-%d %H:%M:%S')
 
-        formatter = CustomFormatter(fmt=default_formats["log_format"])
+        formatter = CustomFormatter(fmt=default_formats["log_format"], tz=self.tokyo_tz)
         file_handler.setFormatter(formatter)
 
     @staticmethod
@@ -84,12 +87,14 @@ class HandleLog:
         all_logger_handler = self.__init_logger_handler(self.__all_log_path)
         error_logger_handler = self.__init_logger_handler(self.__error_log_path)
         console_handle = self.__init_console_handle()
+
         self.__set_log_formatter(all_logger_handler)
         self.__set_log_formatter(error_logger_handler)
         self.__set_color_formatter(console_handle, log_colors_config)
         self.__set_log_handler(all_logger_handler)
         self.__set_log_handler(error_logger_handler, level=logging.ERROR)
         self.__set_color_handle(console_handle)
+
         if level == "info":
             self.__logger.info(message)
         elif level == "debug":
@@ -100,6 +105,7 @@ class HandleLog:
             self.__logger.error(message)
         elif level == "critical":
             self.__logger.critical(message)
+
         self.__logger.removeHandler(all_logger_handler)
         self.__logger.removeHandler(error_logger_handler)
         self.__logger.removeHandler(console_handle)
@@ -120,5 +126,6 @@ class HandleLog:
 
     def critical(self, message):
         self.__console("critical", message)
+
 
 logger = HandleLog()
