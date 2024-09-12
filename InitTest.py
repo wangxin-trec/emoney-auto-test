@@ -35,6 +35,12 @@ if __name__ == '__main__':
         with open(currentReportPath + '/DoubleClickToOpenReport.bat', 'w') as f:
           f.write(ConfigInfo.ShellCommend.AllureOpen)
           f.close()
+        #DoubleClickToOpenReport.shファイルを作成
+        with open(currentReportPath + '/OpenReport.sh', 'w') as f:
+          f.write("#!/bin/bash\n")
+          f.write(ConfigInfo.ShellCommend.AllureOpen)
+          f.close()
+        os.chmod(currentReportPath + '/OpenReport.sh', 0o755)
     logger.info('★★★★自動化テスト⇒終了★★★★ ' + version)
   except Exception as e:
     error_msg = traceback.format_exc()
