@@ -44,14 +44,14 @@ class VMOperations:
 
     @allure.step('Wait for operation')
     def _wait_for_operation(self, project_id, zone, operation_name):
-        logger.info('VM Wait⇒begin: ' + operation_name)
+        # logger.info('VM Wait⇒begin: ' + operation_name)
         operations_client = compute_v1.ZoneOperationsClient()
         while True:
             operation = operations_client.get(project=project_id, zone=zone, operation=operation_name)
             if str(operation.status) == ConfigInfo.Status.Done:
                 if 'error' in operation:
                     raise RuntimeError(f"Operation {operation_name} failed: {operation.error}")
-                logger.info('VM Wait⇒end: ' + operation_name)
+                # logger.info('VM Wait⇒end: ' + operation_name)
                 return operation
             # Optionally, sleep for a short period before polling again
             time.sleep(1)

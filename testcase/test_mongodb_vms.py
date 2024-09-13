@@ -19,6 +19,13 @@ MONGODB_VMs = {
 
 project_id = "emoney-dev-433104"
 
+@pytest.fixture(scope='function', autouse=True)
+def add_delay_after_test():
+    yield
+    logger.info('Delay 120s =================>')
+    time.sleep(120) # 每条用例执行完都延时2min
+    logger.info('Delay 120s <=================')
+
 @allure.epic('Test MongoDB VMs')
 class TestAllMongoDBVM:
 
