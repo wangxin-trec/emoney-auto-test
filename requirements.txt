@@ -10,3 +10,4 @@ colorlog
 google-cloud-compute
 pytz
 requests
+esdbclient
