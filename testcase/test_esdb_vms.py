@@ -93,8 +93,7 @@ class TestAllESDBVM:
                     status = future.result()
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
                 except Exception as exc:
-                    logger.error(f'VM {vm_key} generated an exception: {exc}')   
-        logger.info('Start esdb vm1,2 --> done ' + vm["name"]) ## 不影响下一个测试用例
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
         vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
 
     ### 主机停机
