@@ -14,6 +14,8 @@ Preparation: Make sure Java and Allure tools are installed and environment varia
 2. run StartAutoGetGossipData.bat locally
 3. run StartAutoTest.sh in GCP shell
 4. run StartESDBRead_Write.bat when notice user input automaticlly
+※`sudo systemctl status eventstore` should be executed if you started VM but cannot get gossip from esdb, if eventstore service is not running, then execute `sudo systemctl start eventstore`
+
 
 ### test mongodb monkey test
 1. delete teste_esdb_vms.py in testcase folder
