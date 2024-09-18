@@ -11,3 +11,4 @@ google-cloud-compute
 pytz
 requests
 esdbclient
+pymongo
