@@ -78,7 +78,7 @@ class TestAllESDBVM:
                     status = future.result()
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
                 except Exception as exc:
-                    logger.error(f'VM {vm_key} generated an exception: {exc}')        
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
         vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
         # 开启VM 1,2

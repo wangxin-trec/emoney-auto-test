@@ -57,18 +57,21 @@ class VMOperations:
             time.sleep(1)
 
     @allure.step('Get user Input')
-    def get_user_input(self):
+    def get_user_input(hint="Please enter content (Press Enter to skip, type 'exit' to quit): "):
         try:
             while True:
-                user_input = input("Please enter content (Press Enter to skip, type 'exit' to quit): ")
+                user_input = input(hint)
                 if user_input == "":
-                    print("You pressed Enter without entering any content, continuing to the next step.\n")
+                    logger.info("You pressed Enter without entering any content, continuing to the next step.\n")
                     continue
                 if user_input.lower() == 'exit':
                     logger.info("User chose to exit the program.")
-                    print("Program has exited.")
+                    logger.info("Program has exited.")
                     break
-                logger.info(f"User input: {user_input}")
+                else:
+                    logger.info(f"User input: {user_input}")
+                    return user_input
         except KeyboardInterrupt:
             logger.info("Program was manually terminated.")
-            print("\nProgram has been manually terminated.")
+            logger.info("\nProgram has been manually terminated.")
+            return None

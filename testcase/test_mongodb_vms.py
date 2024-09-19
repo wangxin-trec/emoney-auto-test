@@ -6,15 +6,12 @@ import concurrent.futures
 import inspect
 
 MONGODB_VMs = {
-    "config1": {"name": "mongo-vm-config1", "zone": "asia-northeast1-a"},
-    "config2": {"name": "mongo-vm-config2", "zone": "asia-northeast1-a"},
-    "config3": {"name": "mongo-vm-config3", "zone": "asia-northeast1-a"},
-    "shard1-1": {"name": "mongo-vm-shard1-1", "zone": "asia-northeast1-b"},
-    "shard1-2": {"name": "mongo-vm-shard1-2", "zone": "asia-northeast1-b"},
-    "shard1-3-arbiter": {"name": "mongo-vm-shard1-3-arbiter", "zone": "asia-northeast1-b"},
-    "shard2-1": {"name": "mongo-vm-shard2-1", "zone": "asia-northeast1-c"},
-    "shard2-2": {"name": "mongo-vm-shard2-2", "zone": "asia-northeast1-c"},
-    "shard2-3-arbiter": {"name": "mongo-vm-shard2-3-arbiter", "zone": "asia-northeast1-c"}
+    "mongo-vm-shard1-1": {"name": "mongo-vm-shard1-1", "zone": "asia-northeast1-b"},
+    "mongo-vm-shard1-2": {"name": "mongo-vm-shard1-2", "zone": "asia-northeast1-b"},
+    "mongo-vm-shard1-3-arbiter": {"name": "mongo-vm-shard1-3-arbiter", "zone": "asia-northeast1-b"},
+    "mongo-vm-shard2-1": {"name": "mongo-vm-shard2-1", "zone": "asia-northeast1-c"},
+    "mongo-vm-shard2-2": {"name": "mongo-vm-shard2-2", "zone": "asia-northeast1-c"},
+    "mongo-vm-shard2-3-arbiter": {"name": "mongo-vm-shard2-3-arbiter", "zone": "asia-northeast1-c"}
 }
 
 project_id = "emoney-dev-433104"
@@ -22,30 +19,149 @@ project_id = "emoney-dev-433104"
 @pytest.fixture(scope='function', autouse=True)
 def add_delay_after_test():
     yield
-    logger.info('Delay 120s =================>')
-    time.sleep(120) # 每条用例执行完都延时2min
-    logger.info('Delay 120s <=================')
+    logger.info('Delay 10s =================>')
+    time.sleep(30) # 每条用例执行完都延时10s
+    logger.info('Delay 10s <=================')
 
 @allure.epic('Test MongoDB VMs')
 class TestAllMongoDBVM:
-
-    @pytest.fixture(scope='class')
-    def vm_ops(self, client):
-        return VMOperations(client)
 
     @staticmethod
     def stop_single_vm(vm_ops, project_id, vm):
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         if str(operation.status) == ConfigInfo.Status.Done:
-            logger.info('stop mongodb vm --> done ' + vm["name"])
+            logger.info('stop mongo vm --> done ' + vm["name"])
         return str(operation.status)
 
-    # stop all mongodb vm at same time
-    @allure.story('Test Stop all MongoDB VMs')
+    @staticmethod
+    def start_single_vm(vm_ops, project_id, vm):
+        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        if str(operation.status) == ConfigInfo.Status.Done:
+            logger.info('start mongo vm --> done ' + vm["name"])
+        return str(operation.status)
+
+
+    @pytest.fixture(scope='class')
+    def vm_ops(self, client):
+        return VMOperations(client)
+
+    @allure.story('停止一台备机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=30)
-    def test_stop_mongodb_vms(self, vm_ops):
+    @pytest.mark.run(order=1)
+    def test_stop_1_secondary(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node = vm_ops.get_user_input("请输入想停止的次节点：") # mongo-vm-shard1-1，mongo-vm-shard1-2，mongo-vm-shard2-1， mongo-vm-shard2-2
+        vm = MONGODB_VMs[node]
+        operation1 = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        operation2 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
+
+    @allure.story('停止一台Arbiter')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=2)
+    def test_stop_1_arbiter(self, vm_ops):
+        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点，arbiter节点将自动停止：")
+        vm = MONGODB_VMs["mongo-vm-shard1-3-arbiter"]
+        operation1 = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        operation2 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
+
+    @allure.story('停止备机和Arbiter')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=3)
+    def test_stop_1_secondary_1_arbiter(self, vm_ops):
+        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node1 = vm_ops.get_user_input("请输入想停止的次节点，arbiter节点将自动停止：")
+        vm_secondary = MONGODB_VMs[node1]
+        vm_arbiter = MONGODB_VMs["mongo-vm-shard1-3-arbiter"]
+        operation1 = vm_ops.stop_vm(project_id, vm_secondary["zone"], vm_secondary["name"])
+        operation2 = vm_ops.stop_vm(project_id, vm_arbiter["zone"], vm_arbiter["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        operation3 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        operation4 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert str(operation3.status) == ConfigInfo.Status.Done
+        assert str(operation4.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
+
+    @allure.story('主机停机')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=4)
+    def test_stop_1_primary(self, vm_ops):
+        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node = vm_ops.get_user_input("请输入想停止的主节点：")
+        vm = MONGODB_VMs[node]
+        operation1 = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        operation2 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
+
+    @allure.story('主机和备机停机')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=5)
+    def test_stop_1_primary_1_secondary(self, vm_ops):
+        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node1 = vm_ops.get_user_input("请输入想停止的主节点：")
+        vm1 = MONGODB_VMs[node1]
+        operation1 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        node2 = vm_ops.get_user_input("请输入想停止的次节点：")
+        vm2 = MONGODB_VMs[node2]
+        operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation3.status) == ConfigInfo.Status.Done
+        operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation4.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
+
+    @allure.story('主机和Arbiter停机')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=6)
+    def test_stop_1_primary_1_arbiter(self, vm_ops):
+        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node1 = vm_ops.get_user_input("请输入想停止的主节点, arbiter节点将自动停止：")
+        vm1 = MONGODB_VMs[node1]
+        operation1 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation1.status) == ConfigInfo.Status.done
+        vm2 = MONGODB_VMs["mongo-vm-shard1-3-arbiter"]
+        operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation3.status) == ConfigInfo.Status.Done
+        operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation4.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
+
+    @allure.story('shard1停机')
+    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
+    @pytest.mark.run(order=7)
+    def test_stop_1_shard(self, vm_ops):
+        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点，所有节点将自动停止：")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
@@ -58,30 +174,7 @@ class TestAllMongoDBVM:
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=31)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    @staticmethod
-    def start_single_vm(vm_ops, project_id, vm):
-        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        if str(operation.status) == ConfigInfo.Status.Done:
-            logger.info('start mongodb vm --> done ' + vm["name"])
-        return str(operation.status)
-
-    # start all mongodb vm at same time
-    @allure.story('Test Start all MongoDB VMs')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=32)
-    def test_start_mongodb_vms(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
@@ -94,496 +187,242 @@ class TestAllMongoDBVM:
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("等待节点恢复正常")
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
-    # query all node info by user
-    @allure.story('query all node info by user')
+    @allure.story('所有备机停机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=33)
-    def test_input_all_node_info(self, vm_ops):
+    @pytest.mark.run(order=8)
+    def test_stop_all_secondary(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node1 = vm_ops.get_user_input("请输入想停止的第一个备用节点：")
+        vm1 = MONGODB_VMs[node1]
+        operation1 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        node2 = vm_ops.get_user_input("请输入想停止的第二个备用节点：")
+        vm2 = MONGODB_VMs[node2]
+        operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation3.status) == ConfigInfo.Status.Done
+        operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation4.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
-    #########################################config###############################################
-    # stop mongodb-config-1
-    # @allure.story('Test Stop MongoDB Config 1')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=22)
-    # def test_stop_mongo_config_1(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config1"]
-    #     operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # # stop mongodb-config-2
-    # @allure.story('Test Stop MongoDB Config 2')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=23)
-    # def test_stop_mongo_config_2(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config2"]
-    #     operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # # stop mongodb-config-3
-    # @allure.story('Test Stop MongoDB Config 3')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=24)
-    # def test_stop_mongo_config_3(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config3"]
-    #     operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # # start mongodb-config-1
-    # @allure.story('Test Start MongoDB Config 1')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=25)
-    # def test_stop_mongo_config_1(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config1"]
-    #     operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # # start mongodb-config-2
-    # @allure.story('Test Start MongoDB Config 2')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=26)
-    # def test_stop_mongo_config_2(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config2"]
-    #     operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # # start mongodb-config-3
-    # @allure.story('Test Start MongoDB Config 3')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=27)
-    # def test_stop_mongo_config_3(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config3"]
-    #     operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # # restart mongodb-config-1
-    # @allure.story('Test Restart MongoDB Config 1')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=28)
-    # def test_restart_mongo_config_1(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config1"]
-    #     stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(stop_operation.status) == ConfigInfo.Status.Done
-    #     assert str(start_operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # # restart mongodb-config-2
-    # @allure.story('Test Restart MongoDB Config 2')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=29)
-    # def test_restart_mongo_config_2(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config2"]
-    #     stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(stop_operation.status) == ConfigInfo.Status.Done
-    #     assert str(start_operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # # restart mongodb-config-3
-    # @allure.story('Test Restart MongoDB Config 3')
-    # @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    # @pytest.mark.run(order=30)
-    # def test_restart_mongo_config_3(self, vm_ops):
-    #     logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-    #     vm = MONGODB_VMs["config3"]
-    #     stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-    #     start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-    #     assert str(stop_operation.status) == ConfigInfo.Status.Done
-    #     assert str(start_operation.status) == ConfigInfo.Status.Done
-    #     logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-    #########################################config###############################################
-
-    #########################################shard1###############################################
-    # stop mongodb-shard1-1
-    @allure.story('Test Stop MongoDB shard 1-1')
+    @allure.story('所有arbiter停机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=34)
-    def test_stop_mongo_shard_1_1(self, vm_ops):
+    @pytest.mark.run(order=9)
+    def test_stop_all_arbiter(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-1"]
-        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点, arbiter节点将自动停止：")
+        MONGODB_VMs_select = {key: ESDB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in MONGODB_VMs_select.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in MONGODB_VMs_select.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("等待节点恢复正常")
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
-    # query all node info by user
-    @allure.story('query all node info by user')
+    @allure.story('所有备机和arbiter停机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=35)
-    def test_input_all_node_info(self, vm_ops):
+    @pytest.mark.run(order=10)
+    def test_stop_all_secondary_arbiter(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点, arbiter节点将自动停止：")
+        node1 = vm_ops.get_user_input("请输入想停止的第一个备用节点：")
+        vm1 = MONGODB_VMs[node1]
+        operation1 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        node2 = vm_ops.get_user_input("请输入想停止的第二个备用节点，arbiter节点将自动停止：")
+        vm2 = MONGODB_VMs[node2]
+        operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        MONGODB_VMs_select = {key: ESDB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in MONGODB_VMs_select.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in MONGODB_VMs_select.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("等待节点恢复正常")
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
-    # stop mongodb-shard1-2
-    @allure.story('Test Stop MongoDB shard 1-2')
+    @allure.story('所有主机停机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=36)
-    def test_stop_mongo_shard_1_2(self, vm_ops):
+    @pytest.mark.run(order=11)
+    def test_stop_all_primary(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-2"]
-        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node1 = vm_ops.get_user_input("请输入想停止的第一个主节点：")
+        vm1 = MONGODB_VMs[node1]
+        operation1 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        node2 = vm_ops.get_user_input("请输入想停止的第二个主节点：")
+        vm2 = MONGODB_VMs[node2]
+        operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation3.status) == ConfigInfo.Status.Done
+        operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation4.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
-    # query all node info by user
-    @allure.story('query all node info by user')
+    @allure.story('所有主机和备机停机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=37)
-    def test_input_all_node_info(self, vm_ops):
+    @pytest.mark.run(order=12)
+    def test_stop_all_primary_secondary(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node1 = vm_ops.get_user_input("请输入想停止的第一个主节点：")
+        vm1 = MONGODB_VMs[node1]
+        operation1 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        node2 = vm_ops.get_user_input("请输入想停止的第二个主节点：")
+        vm2 = MONGODB_VMs[node2]
+        operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        node3 = vm_ops.get_user_input("请输入想停止的第一个备节点：")
+        vm3 = MONGODB_VMs[node3]
+        operation3 = vm_ops.stop_vm(project_id, vm3["zone"], vm3["name"])
+        assert str(operation3.status) == ConfigInfo.Status.Done
+        node4 = vm_ops.get_user_input("请输入想停止的第二个备节点：")
+        vm4 = MONGODB_VMs[node4]
+        operation4 = vm_ops.stop_vm(project_id, vm4["zone"], vm4["name"])
+        assert str(operation4.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        operation5 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation5.status) == ConfigInfo.Status.Done
+        operation6 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation6.status) == ConfigInfo.Status.Done
+        operation7 = vm_ops.start_vm(project_id, vm3["zone"], vm3["name"])
+        assert str(operation7.status) == ConfigInfo.Status.Done
+        operation8 = vm_ops.start_vm(project_id, vm4["zone"], vm4["name"])
+        assert str(operation8.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("等待节点恢复正常")
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
-    # stop mongodb-shard1-3-arbiter
-    @allure.story('Test Stop MongoDB shard 1-3-arbiter')
+    @allure.story('所有主机和arbiter停机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=38)
-    def test_stop_mongo_shard_1_3_arbiter(self, vm_ops):
+    @pytest.mark.run(order=13)
+    def test_stop_all_primary_arbiter(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-3-arbiter"]
-        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node1 = vm_ops.get_user_input("请输入想停止的第一个主节点：")
+        vm1 = MONGODB_VMs[node1]
+        operation1 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation1.status) == ConfigInfo.Status.Done
+        node2 = vm_ops.get_user_input("请输入想停止的第二个主节点, 所有的arbiter将自动停机：")
+        vm2 = MONGODB_VMs[node2]
+        operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation2.status) == ConfigInfo.Status.Done
+        MONGODB_VMs_select = {key: ESDB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in MONGODB_VMs_select.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        operation5 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
+        assert str(operation5.status) == ConfigInfo.Status.Done
+        operation6 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
+        assert str(operation6.status) == ConfigInfo.Status.Done
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in MONGODB_VMs_select.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("等待节点恢复正常")
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
-    # query all node info by user
-    @allure.story('query all node info by user')
+    @allure.story('所有主机和arbiter停机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=39)
-    def test_input_all_node_info(self, vm_ops):
+    @pytest.mark.run(order=14)
+    def test_stop_all_primary_arbiter(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in MONGODB_VMs.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
+                for vm_key, vm in MONGODB_VMs.items()
+            }
+            for future in concurrent.futures.as_completed(futures):
+                vm_key = futures[future]
+                try:
+                    status = future.result()
+                    assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
+                except Exception as exc:
+                    logger.error(f'VM {vm_key} generated an exception: {exc}')
+        vm_ops.get_user_input("等待节点恢复正常")
         logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # start mongodb-shard1-1
-    @allure.story('Test Start MongoDB shard 1-1')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=40)
-    def test_start_mongo_shard_1_1(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-1"]
-        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=41)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # start mongodb-shard1-2
-    @allure.story('Test Start MongoDB shard 1-2')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=42)
-    def test_start_mongo_shard_1_2(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-2"]
-        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=43)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # start mongodb-shard1-3-arbiter
-    @allure.story('Test Start MongoDB shard 1-3-arbiter')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=44)
-    def test_start_mongo_shard_1_3_arbiter(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-3-arbiter"]
-        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=45)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # restart mongodb-shard1-1
-    @allure.story('Test Restart MongoDB shard 1-1')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=46)
-    def test_restart_mongo_shard_1_1(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-1"]
-        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(stop_operation.status) == ConfigInfo.Status.Done
-        assert str(start_operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=47)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # restart mongodb-shard1-2
-    @allure.story('Test Restart MongoDB shard 1-2')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=48)
-    def test_restart_mongo_shard_1_2(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-2"]
-        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(stop_operation.status) == ConfigInfo.Status.Done
-        assert str(start_operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=49)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # restart mongodb-shard1-3-arbiter
-    @allure.story('Test Restart MongoDB shard 1-3-arbiter')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=50)
-    def test_restart_mongo_shard_1_3(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard1-3-arbiter"]
-        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(stop_operation.status) == ConfigInfo.Status.Done
-        assert str(start_operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=51)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-    #########################################shard1###############################################
-
-    #########################################shard2###############################################
-    # stop mongodb-shard2-1
-    @allure.story('Test Stop MongoDB shard 2-1')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=52)
-    def test_stop_mongo_shard_2_1(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-1"]
-        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=53)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # stop mongodb-shard2-2
-    @allure.story('Test Stop MongoDB shard 2-2')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=54)
-    def test_stop_mongo_shard_2_2(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-2"]
-        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=55)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # stop mongodb-shard2-3-arbiter
-    @allure.story('Test Stop MongoDB shard 2-3-arbiter')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=56)
-    def test_stop_mongo_shard_2_3_arbiter(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-3-arbiter"]
-        operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=57)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # start mongodb-shard2-1
-    @allure.story('Test Start MongoDB shard 2-1')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=58)
-    def test_start_mongo_shard_2_1(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-1"]
-        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=59)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # start mongodb-shard2-2
-    @allure.story('Test Start MongoDB shard 1-2')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=60)
-    def test_start_mongo_shard_2_2(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-2"]
-        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=61)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # start mongodb-shard2-3-arbiter
-    @allure.story('Test Start MongoDB shard 2-3-arbiter')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=62)
-    def test_start_mongo_shard_2_3_arbiter(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-3-arbiter"]
-        operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=63)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # restart mongodb-shard2-1
-    @allure.story('Test Restart MongoDB shard 2-1')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=64)
-    def test_restart_mongo_shard_2_1(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-1"]
-        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(stop_operation.status) == ConfigInfo.Status.Done
-        assert str(start_operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=65)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # restart mongodb-shard2-2
-    @allure.story('Test Restart MongoDB shard 2-2')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=66)
-    def test_restart_mongo_shard_2_2(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-2"]
-        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(stop_operation.status) == ConfigInfo.Status.Done
-        assert str(start_operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=67)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # restart mongodb-shard2-3-arbiter
-    @allure.story('Test Restart MongoDB shard 2-3-arbiter')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=68)
-    def test_restart_mongo_shard_2_2(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = MONGODB_VMs["shard2-3-arbiter"]
-        stop_operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
-        start_operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        assert str(stop_operation.status) == ConfigInfo.Status.Done
-        assert str(start_operation.status) == ConfigInfo.Status.Done
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-
-    # query all node info by user
-    @allure.story('query all node info by user')
-    @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
-    @pytest.mark.run(order=69)
-    def test_input_all_node_info(self, vm_ops):
-        logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input()
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-    #########################################shard2###############################################
