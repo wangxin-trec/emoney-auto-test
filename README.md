@@ -19,4 +19,22 @@ Preparation: Make sure Java and Allure tools are installed and environment varia
 
 ### test mongodb monkey test
 1. delete teste_esdb_vms.py in testcase folder
-...
+2. run MongoDB_health_check_per_second.py
+3. run StartAutoTest.sh in GCP shell
+4. run StartMongoDBRead_Write when notice user input automaticlly
+Go into the mongos VM
+mongosh --host mongo-vm-shard1-1 -u root -p xtk6AYDSaXh2pEkADD3eTnRR
+rs.status()
+↑可以查询mongo-vm-shard1-1的主备节点状态
+
+mongosh --host mongo-vm-shard2-1 -u root -p xtk6AYDSaXh2pEkADD3eTnRR
+rs.status()
+↑可以查询mongo-vm-shard2-1的主备节点状态
+
+进入Mongo Compass
+sh.status()
+↑可以查询集群状态
+
+计算备节点升级为主节点时间（在关闭主节点用例时）
+sudo grep "transition to primary" /var/log/mongodb/mongod.log
+mongodb的log记录地址: cd /var/log/mongodb/
