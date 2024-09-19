@@ -57,7 +57,7 @@ class VMOperations:
             time.sleep(1)
 
     @allure.step('Get user Input')
-    def get_user_input(hint="Please enter content (Press Enter to skip, type 'exit' to quit): "):
+    def get_user_input(self, hint="Please enter content (Press Enter to skip, type 'exit' to quit): "):
         try:
             while True:
                 user_input = input(hint)
