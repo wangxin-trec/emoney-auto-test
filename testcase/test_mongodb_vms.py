@@ -54,6 +54,7 @@ class TestAllMongoDBVM:
         vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
         node = vm_ops.get_user_input("请输入想停止的次节点：") # mongo-vm-shard1-1，mongo-vm-shard1-2，mongo-vm-shard2-1， mongo-vm-shard2-2
         vm = MONGODB_VMs[node]
+        logger.info(str(vm))
         operation1 = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert str(operation1.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写

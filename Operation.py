@@ -69,7 +69,7 @@ class VMOperations:
                     logger.info("Program has exited.")
                     break
                 else:
-                    logger.info(f"User input: {user_input}")
+                    logger.info(f"{hint}: {user_input}")
                     return user_input
         except KeyboardInterrupt:
             logger.info("Program was manually terminated.")
