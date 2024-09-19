@@ -396,7 +396,7 @@ class TestAllMongoDBVM:
     @allure.story('所有主机和arbiter停机')
     @pytest.mark.flaky(reruns=int(ConfigInfo.TestCaseReRun.Count), reruns_delay=int(ConfigInfo.TestCaseReRun.Delay))
     @pytest.mark.run(order=14)
-    def test_stop_all_primary_arbiter(self, vm_ops):
+    def test_stop_all_shard(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
         vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
         with concurrent.futures.ThreadPoolExecutor() as executor:
