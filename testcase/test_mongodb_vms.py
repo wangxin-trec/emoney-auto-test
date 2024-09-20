@@ -54,7 +54,6 @@ class TestAllMongoDBVM:
         vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
         node = vm_ops.get_user_input("请输入想停止的次节点：") # mongo-vm-shard1-1，mongo-vm-shard1-2，mongo-vm-shard2-1， mongo-vm-shard2-2
         vm = MONGODB_VMs[node]
-        logger.info(str(vm))
         operation1 = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert str(operation1.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
@@ -92,8 +91,8 @@ class TestAllMongoDBVM:
         assert str(operation1.status) == ConfigInfo.Status.Done
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
-        operation3 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
-        operation4 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
+        operation3 = vm_ops.start_vm(project_id, vm_secondary["zone"], vm_secondary["name"])
+        operation4 = vm_ops.start_vm(project_id, vm_arbiter["zone"], vm_arbiter["name"])
         assert str(operation3.status) == ConfigInfo.Status.Done
         assert str(operation4.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("等待节点恢复正常")
@@ -146,7 +145,7 @@ class TestAllMongoDBVM:
         node1 = vm_ops.get_user_input("请输入想停止的主节点, arbiter节点将自动停止：")
         vm1 = MONGODB_VMs[node1]
         operation1 = vm_ops.stop_vm(project_id, vm1["zone"], vm1["name"])
-        assert str(operation1.status) == ConfigInfo.Status.done
+        assert str(operation1.status) == ConfigInfo.Status.Done
         vm2 = MONGODB_VMs["mongo-vm-shard1-3-arbiter"]
         operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
@@ -164,10 +163,11 @@ class TestAllMongoDBVM:
     def test_stop_1_shard(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
         vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点，所有节点将自动停止：")
+        MONGODB_VMs_select = {key: MONGODB_VMs[key] for key in ["mongo-vm-shard1-1", "mongo-vm-shard1-2","mongo-vm-shard1-3-arbiter"]}
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
-                for vm_key, vm in MONGODB_VMs.items()
+                for vm_key, vm in MONGODB_VMs_select.items()
             }
             for future in concurrent.futures.as_completed(futures):
                 vm_key = futures[future]
@@ -176,11 +176,11 @@ class TestAllMongoDBVM:
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
-        vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        vm_ops.get_user_input("输入当前mongodb是否可读可写，一个shard的所有节点将自动恢复：")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
-                for vm_key, vm in MONGODB_VMs.items()
+                for vm_key, vm in MONGODB_VMs_select.items()
             }
             for future in concurrent.futures.as_completed(futures):
                 vm_key = futures[future]
@@ -220,7 +220,7 @@ class TestAllMongoDBVM:
     def test_stop_all_arbiter(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
         vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点, arbiter节点将自动停止：")
-        MONGODB_VMs_select = {key: ESDB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
+        MONGODB_VMs_select = {key: MONGODB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
@@ -263,7 +263,7 @@ class TestAllMongoDBVM:
         vm2 = MONGODB_VMs[node2]
         operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
-        MONGODB_VMs_select = {key: ESDB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
+        MONGODB_VMs_select = {key: MONGODB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
@@ -362,7 +362,7 @@ class TestAllMongoDBVM:
         vm2 = MONGODB_VMs[node2]
         operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
-        MONGODB_VMs_select = {key: ESDB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
+        MONGODB_VMs_select = {key: MONGODB_VMs[key] for key in ["mongo-vm-shard1-3-arbiter", "mongo-vm-shard2-3-arbiter"]}
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
