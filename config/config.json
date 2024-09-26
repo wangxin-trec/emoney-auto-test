@@ -13,7 +13,10 @@
         "ReportPath": "./report",
         "ReportBKPath": "./reportBK/",
         "TempJsonPath": "./tempjson/",
-        "TestCasePath": "./testcase"
+        "TestCasePath": "./testcase",
+        "APIReportPath": "./api_report",
+        "APITempJsonPath": "./api_temjson/",
+        "APITestcasePath": "./apitestcase"
     },
     "ShellCommend": {
         "AllureOpen": "allure open %~dp0",
