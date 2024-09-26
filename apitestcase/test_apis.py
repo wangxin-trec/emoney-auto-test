@@ -137,6 +137,7 @@ class TestApi:
 
             # Calculate response time and append to list
             response_time = end_time - start_time
+            response_times.append(response_time) 
             allure.attach(f"{response_time:.2f} seconds", name="Response Time", attachment_type=allure.attachment_type.TEXT)
             total_requests += 1 
             # Check status code
