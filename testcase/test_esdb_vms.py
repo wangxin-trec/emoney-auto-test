@@ -49,16 +49,17 @@ class TestAllESDBVM:
     @pytest.mark.run(order=1)
     def test_stop_follower_node_1(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = ESDB_VMs["1"]
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node = vm_ops.get_user_input("请输入想停止的次节点：")
+        vm = ESDB_VMs[node]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('Stop esdb vm --> done ' + vm["name"])
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
+        vm_ops.get_user_input("输入当前ESDB是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前ESDB是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('Start esdb vm --> done ' + vm["name"]) ## 不影响下一个测试用例
-        vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
     ### 两台备机停机
     @allure.story('Test Stop 2 follower: node1, node2')
@@ -66,7 +67,10 @@ class TestAllESDBVM:
     @pytest.mark.run(order=2)
     def test_stop_follower_node_1_2(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        ESDB_VMs_select = {key: ESDB_VMs[key] for key in ["1", "2"]}
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node1 = vm_ops.get_user_input("请输入想停止的第一个次节点：")
+        node2 = vm_ops.get_user_input("请输入想停止的第二个次节点：")
+        ESDB_VMs_select = {key: ESDB_VMs[key] for key in [node1, node2]}
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
@@ -79,8 +83,8 @@ class TestAllESDBVM:
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
+        vm_ops.get_user_input("输入当前ESDB是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前ESDB是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         # 开启VM 1,2
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
@@ -94,7 +98,8 @@ class TestAllESDBVM:
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
-        vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
     ### 主机停机
     @allure.story('Test Stop 1 Leader: node3')
@@ -102,16 +107,17 @@ class TestAllESDBVM:
     @pytest.mark.run(order=3)
     def test_stop_leader_node_3(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
-        vm = ESDB_VMs["3"]
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点：")
+        node = vm_ops.get_user_input("请输入想停止的主节点：")
+        vm = ESDB_VMs[node]
         operation = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('Stop esdb vm --> done ' + vm["name"])
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
+        vm_ops.get_user_input("输入当前ESDB是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前ESDB是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert str(operation.status) == ConfigInfo.Status.Done
-        logger.info('Start esdb vm --> done ' + vm["name"]) ## 不影响下一个测试用例
-        vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
 
     ### 集群停机（三台VM都宕机）
     @allure.story('Test Stop all ESDB VMs at same time')
@@ -119,6 +125,7 @@ class TestAllESDBVM:
     @pytest.mark.run(order=4)
     def test_stop_eventstoredb_all(self, vm_ops):
         logger.info('test case begin: -------------->' + inspect.currentframe().f_code.co_name)
+        vm_ops.get_user_input("请输入查询结果：谁是主节点，谁是备用节点，所有节点将自动停止：")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.stop_single_vm, vm_ops, project_id, vm): vm_key 
@@ -131,8 +138,8 @@ class TestAllESDBVM:
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to stop VM: {vm_key}"
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
-        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
-        vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
+        vm_ops.get_user_input("输入当前ESDB是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前ESDB是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         # 开启三台VM
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
@@ -146,4 +153,5 @@ class TestAllESDBVM:
                     assert str(status) == ConfigInfo.Status.Done, f"Failed to start VM: {vm_key}"
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
-        vm_ops.get_user_input() ## 暂停，等待用户输入确认，给vm, Node 一定时间
+        vm_ops.get_user_input("等待节点恢复正常")
+        logger.info('test case end: -------------->' + inspect.currentframe().f_code.co_name)
