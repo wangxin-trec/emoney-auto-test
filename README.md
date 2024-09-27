@@ -38,3 +38,8 @@ sh.status()
 计算备节点升级为主节点时间（在关闭主节点用例时）
 sudo grep "transition to primary" /var/log/mongodb/mongod.log
 mongodb的log记录地址: cd /var/log/mongodb/
+
+### 测试API情况
+1. 可以直接运行StartAPITest.bat 采用了pytest多线程的方式，结合allure出报告
+2. 也可以用locust apitestcase/locust.py 
+执行命令：locust -f locustfile.py --headless -u 400 --spawn-rate 400 --autostart --target-rps 400
