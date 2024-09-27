@@ -72,7 +72,7 @@ BODIES = {
 }
 
 class ApiUser(HttpUser):
-    wait_time = between(1, 3)
+    wait_time = between(0, 1)
     host = "https://emoney-test.supay.jp"
     # 用于存储状态码计数的字典
     result_code_count = defaultdict(int)
@@ -84,15 +84,17 @@ class ApiUser(HttpUser):
         self.validate_response(self.client.post("", data=BODIES["StatusCheck"], headers=HEADERS["StatusCheck"], name="/statusCheck"), "statusCheck")
 
     def validate_response(self, response, action):
-        if response.status_code == 200:
-            # Extract resultCode from the response
-            result_code_match = re.search(r"<\w+:resultCode>(\d+)</\w+:resultCode>", response.text)
-            if result_code_match:
-                result_code = result_code_match.group(1)
-                if result_code in self.result_code_count:
-                    self.result_code_count[result_code] += 1
-                else:
-                    self.result_code_count[result_code] = 1
+        if response.status_code != 200:
+            print(f'error {action}: {response.content}')
+        result_code_match = re.search(r"<[^:]+:resultCode>(\d+)</[^:]+:resultCode>", str(response.content))
+        if result_code_match:
+            result_code = result_code_match.group(1)
+        else:
+            result_code = str(response.content)
+        if result_code in self.result_code_count:
+            self.result_code_count[result_code] += 1
+        else:
+            self.result_code_count[result_code] = 1
 
 
     def on_stop(self):
