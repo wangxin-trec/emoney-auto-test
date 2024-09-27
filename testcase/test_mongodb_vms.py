@@ -57,6 +57,7 @@ class TestAllMongoDBVM:
         operation1 = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert str(operation1.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation2 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("等待节点恢复正常")
@@ -72,6 +73,7 @@ class TestAllMongoDBVM:
         operation1 = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert str(operation1.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation2 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("等待节点恢复正常")
@@ -91,6 +93,7 @@ class TestAllMongoDBVM:
         assert str(operation1.status) == ConfigInfo.Status.Done
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation3 = vm_ops.start_vm(project_id, vm_secondary["zone"], vm_secondary["name"])
         operation4 = vm_ops.start_vm(project_id, vm_arbiter["zone"], vm_arbiter["name"])
         assert str(operation3.status) == ConfigInfo.Status.Done
@@ -109,6 +112,7 @@ class TestAllMongoDBVM:
         operation1 = vm_ops.stop_vm(project_id, vm["zone"], vm["name"])
         assert str(operation1.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation2 = vm_ops.start_vm(project_id, vm["zone"], vm["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("等待节点恢复正常")
@@ -129,6 +133,7 @@ class TestAllMongoDBVM:
         operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
         assert str(operation3.status) == ConfigInfo.Status.Done
         operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
@@ -150,6 +155,7 @@ class TestAllMongoDBVM:
         operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：") ## 暂停, 输入测试结果：当前mongodb是否可读可写
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
         assert str(operation3.status) == ConfigInfo.Status.Done
         operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
@@ -177,6 +183,7 @@ class TestAllMongoDBVM:
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
         vm_ops.get_user_input("输入当前mongodb是否可读可写，一个shard的所有节点将自动恢复：")
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
@@ -207,6 +214,7 @@ class TestAllMongoDBVM:
         operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
         assert str(operation3.status) == ConfigInfo.Status.Done
         operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
@@ -234,6 +242,7 @@ class TestAllMongoDBVM:
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
@@ -277,6 +286,7 @@ class TestAllMongoDBVM:
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
         assert str(operation3.status) == ConfigInfo.Status.Done
         operation4= vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
@@ -311,6 +321,7 @@ class TestAllMongoDBVM:
         operation2 = vm_ops.stop_vm(project_id, vm2["zone"], vm2["name"])
         assert str(operation2.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
         assert str(operation3.status) == ConfigInfo.Status.Done
         operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
@@ -341,6 +352,7 @@ class TestAllMongoDBVM:
         operation4 = vm_ops.stop_vm(project_id, vm4["zone"], vm4["name"])
         assert str(operation4.status) == ConfigInfo.Status.Done
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation5 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
         assert str(operation5.status) == ConfigInfo.Status.Done
         operation6 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
@@ -380,6 +392,7 @@ class TestAllMongoDBVM:
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         operation3 = vm_ops.start_vm(project_id, vm1["zone"], vm1["name"])
         assert str(operation3.status) == ConfigInfo.Status.Done
         operation4 = vm_ops.start_vm(project_id, vm2["zone"], vm2["name"])
@@ -418,6 +431,7 @@ class TestAllMongoDBVM:
                 except Exception as exc:
                     logger.error(f'VM {vm_key} generated an exception: {exc}')
         vm_ops.get_user_input("输入当前mongodb是否可读可写，节点将自动恢复：")
+        vm_ops.get_user_input("查看当前API测试情况，节点将自动恢复：")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(self.start_single_vm, vm_ops, project_id, vm): vm_key 
